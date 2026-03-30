@@ -1,0 +1,90 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    dbFile = 'forumdb'
+}
+
+configurations {
+    sqltool
+}
+
+dependencies {
+    sqltool 'org.hsqldb:hsqldb:2.7.2'
+    sqltool 'org.hsqldb:sqltool:2.7.2'
+
+    implementation 'org.hibernate.orm:hibernate-core:6.2.11.Final'
+    implementation 'org.hibernate.orm:hibernate-community-dialects:6.2.11.Final'
+    implementation 'org.hsqldb:hsqldb:2.7.2'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.0'
+    testImplementation 'org.mockito:mockito-core:5.6.0'
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+def sqlToolMain = 'org.hsqldb.cmdline.SqlTool'
+
+tasks.register('createDb', JavaExec) {
+    group = 'database'
+    description = 'Создание структуры БД'
+
+    classpath = configurations.sqltool
+    mainClass = sqlToolMain
+
+    args = [
+        "--inlineRc=url=jdbc:hsqldb:file:${dbFile},user=SA,password=",
+        "create.sql"
+    ]
+}
+
+tasks.register('initDb', JavaExec) {
+    group = 'database'
+    description = 'Заполнение тестовыми данными'
+
+    classpath = configurations.sqltool
+    mainClass = sqlToolMain
+
+    args = [
+        "--inlineRc=url=jdbc:hsqldb:file:${dbFile},user=SA,password=",
+        "init.sql"
+    ]
+}
+
+tasks.register('showDb', JavaExec) {
+    group = 'database'
+    description = 'Вывод содержимого БД'
+
+    classpath = configurations.sqltool
+    mainClass = sqlToolMain
+
+    args = [
+        "--inlineRc=url=jdbc:hsqldb:file:${dbFile},user=SA,password=",
+        "--sql",
+        "SELECT * FROM users; SELECT * FROM categories; SELECT * FROM topics; SELECT * FROM posts;"
+    ]
+}
+
+tasks.register('cleanDb', Delete) {
+    group = 'database'
+    description = 'Удаление файлов БД'
+
+    delete fileTree(dir: '.', includes: ['forumdb.*'])
+}
+
+sourceSets {
+    test {
+        java {
+            srcDir 'test'
+        }
+    }
+}
+
