@@ -13,8 +13,11 @@ gradle cleanDb createDb initDb
 ``` 
 Выполнить тесты:
 ```bash 
-gradle test --no-daemon
+gradle test jacocoTestReport --no-daemon
 ``` 
+Отчеты можно смотреть по путям: 
+- build/reports/jacoco/test/html/index.html
+- build/reports/tests/test/index.html
 
 ## Hibernate
 - Конфиг: `src/main/resources/hibernate.cfg.xml`
