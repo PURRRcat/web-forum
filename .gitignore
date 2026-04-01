@@ -1,0 +1,16 @@
+# Gradle/Java build
+/.gradle/
+/build/
+/out/
+*.class
+*.jar
+
+# HSQLDB
+*.script
+*.log
+*.properties
+forumdb.*
+
+# IDE
+/.idea/
+/*.iml
