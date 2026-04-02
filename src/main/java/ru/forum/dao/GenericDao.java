@@ -46,6 +46,16 @@ public class GenericDao<T, ID extends Serializable> {
         }
     }
 
+    public void rollback(Transaction tx) {
+        if (tx != null) {
+            try {
+                tx.rollback();
+            } catch (RuntimeException rollbackEx) {
+                // Ignore rollback exceptions to preserve the original exception path in runInTransaction.
+            }
+        }
+    }
+
     protected <R> R runInTransaction(Function<Session, R> work) {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
@@ -54,7 +64,7 @@ public class GenericDao<T, ID extends Serializable> {
             tx.commit();
             return result;
         } catch (RuntimeException ex) {
-            if (tx != null) tx.rollback();
+            rollback(tx);
             throw ex;
         }
     }

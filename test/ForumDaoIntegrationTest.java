@@ -1,6 +1,8 @@
+import org.hibernate.Transaction;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import ru.forum.dao.*;
 import ru.forum.model.*;
 import ru.forum.util.HibernateUtil;
@@ -139,4 +141,93 @@ public class ForumDaoIntegrationTest {
         assertEquals(1, attachmentDao.findByPostId(post.getId()).size());
         assertEquals(1, postViewDao.findByUserId(user.getId()).size());
     }
+
+    @Test
+    public void testGenericDaoUpdateDeleteFindAll() {
+        User user = new User();
+        user.setUsername("testuser2");
+        user.setEmail("testuser2@mail.com");
+        user.setPasswordHash("hashpwd");
+        user.setRole("user");
+        userDao.save(user);
+
+        user.setEmail("updated@mail.com");
+        userDao.update(user);
+
+        User updated = userDao.findById(user.getId());
+        assertEquals("updated@mail.com", updated.getEmail());
+
+        List<User> allUsers = userDao.findAll();
+        assertTrue(allUsers.stream().anyMatch(u -> u.getId().equals(user.getId())));
+
+        userDao.delete(updated);
+        assertNull(userDao.findById(user.getId()));
+    }
+
+    @Test
+    public void testCategoryDaoFindByUserId() {
+        User user = new User();
+        user.setUsername("ivan2");
+        user.setEmail("ivan2@mail.com");
+        user.setPasswordHash("hash");
+        user.setRole("user");
+        userDao.save(user);
+
+        Category category = new Category();
+        category.setTitle("Тест");
+        category.setDescription("Описание");
+        category.setUser(user);
+        categoryDao.save(category);
+
+        List<Category> categories = categoryDao.findByUserId(user.getId());
+        assertEquals(1, categories.size());
+        assertEquals("Тест", categories.get(0).getTitle());
+    }
+
+    @Test
+    public void testGenericDaoRollbackHelperBranches() {
+        GenericDao<Object, Long> dao = new GenericDao<>(Object.class) {};
+
+        // false branch (tx == null)
+        dao.rollback(null);
+
+        // true branch (tx != null)
+        Transaction txn = Mockito.mock(Transaction.class);
+        dao.rollback(txn);
+        Mockito.verify(txn).rollback();
+    }
+
+    @Test
+    public void testCategoryDaoSaveInvalidTriggersRollback() {
+        Category invalid = new Category();
+        invalid.setTitle("Неправильная категория");
+        invalid.setDescription("Нет пользователя");
+        invalid.setUser(null); // user_id NOT NULL, должна упасть транзакция
+
+        assertThrows(RuntimeException.class, () -> categoryDao.save(invalid));
+
+        // После отката запись не сохранилась
+        assertTrue(categoryDao.findAll().isEmpty());
+    }
+
+    private static class TestDao extends GenericDao<Object, Long> {
+        public TestDao() {
+            super(Object.class);
+        }
+
+        public Object simulateRuntimeException() {
+            return runInTransaction(session -> {
+                throw new RuntimeException("simulate runInTransaction failure");
+            });
+        }
+    }
+
+    @Test
+    public void testRunInTransactionCatchRollbackAndRethrow() {
+        TestDao dao = new TestDao();
+
+        RuntimeException ex = assertThrows(RuntimeException.class, dao::simulateRuntimeException);
+        assertEquals("simulate runInTransaction failure", ex.getMessage());
+    }
 }
+
