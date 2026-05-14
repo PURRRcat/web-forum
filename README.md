@@ -154,14 +154,6 @@ gradle appRun
 Ожидаемый результат: HTTP 403, представление `error/403`.  
 Метод теста: `testAdminAccessForbiddenForRegularUser`
 
-### Результаты выполнения тестов
-
-```
-SystemTest:              16 тестов, 0 ошибок, 0 пропущено
-ForumDaoIntegrationTest:  8 тестов, 0 ошибок, 0 пропущено
-Итого: 24 теста — все прошли успешно
-```
-
 
 ## Hibernate
 
