@@ -5,12 +5,19 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 
 public class HibernateUtil {
-    private static final SessionFactory sessionFactory = buildSessionFactory();
+    private static volatile SessionFactory sessionFactory = buildSessionFactory();
 
     private static SessionFactory buildSessionFactory() {
         try {
             Configuration configuration = new Configuration();
             configuration.configure("hibernate.cfg.xml");
+
+            // Позволяет переопределить URL через системное свойство
+            // (используется задачей appRun: jdbc:hsqldb:mem:forumdb)
+            String urlOverride = System.getProperty("hibernate.connection.url");
+            if (urlOverride != null) {
+                configuration.setProperty("hibernate.connection.url", urlOverride);
+            }
 
             configuration.addAnnotatedClass(ru.forum.model.User.class);
             configuration.addAnnotatedClass(ru.forum.model.Category.class);
@@ -29,10 +36,19 @@ public class HibernateUtil {
     }
 
     public static SessionFactory getSessionFactory() {
+        if (sessionFactory == null || sessionFactory.isClosed()) {
+            synchronized (HibernateUtil.class) {
+                if (sessionFactory == null || sessionFactory.isClosed()) {
+                    sessionFactory = buildSessionFactory();
+                }
+            }
+        }
         return sessionFactory;
     }
 
     public static void shutdown() {
-        getSessionFactory().close();
+        if (sessionFactory != null && !sessionFactory.isClosed()) {
+            sessionFactory.close();
+        }
     }
 }
