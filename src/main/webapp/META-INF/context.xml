@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+    <JarScanner>
+        <JarScanFilter
+            tldScan="jakarta.servlet.jsp.jstl*.jar,jakarta.servlet.jsp.jstl-3*.jar"
+            pluggabilityScan="false"/>
+    </JarScanner>
+</Context>

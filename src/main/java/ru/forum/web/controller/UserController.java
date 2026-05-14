@@ -7,6 +7,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.forum.model.User;
+import ru.forum.service.PostService;
+import ru.forum.service.TopicService;
 import ru.forum.service.UserService;
 
 import java.util.Optional;
@@ -16,24 +18,21 @@ import java.util.Optional;
 public class UserController {
 
     @Autowired private UserService userService;
-
-    // ── Вход ──────────────────────────────────────────────────────────────────
+    @Autowired private TopicService topicService;
+    @Autowired private PostService postService;
 
     @GetMapping("/login")
-    public String loginForm() {
-        return "user/login";
-    }
+    public String loginForm() { return "user/login"; }
 
     @PostMapping("/login")
     public String login(@RequestParam String username,
                         @RequestParam String password,
-                        HttpSession session,
-                        RedirectAttributes ra) {
+                        HttpSession session, RedirectAttributes ra) {
         Optional<User> user = userService.login(username, password);
         if (user.isPresent()) {
-            session.setAttribute("userId", user.get().getId());
+            session.setAttribute("userId",   user.get().getId());
             session.setAttribute("username", user.get().getUsername());
-            session.setAttribute("role", user.get().getRole());
+            session.setAttribute("role",     user.get().getRole());
             return "redirect:/";
         }
         ra.addFlashAttribute("error", "Неверное имя пользователя или пароль.");
@@ -46,12 +45,8 @@ public class UserController {
         return "redirect:/";
     }
 
-    // ── Регистрация ───────────────────────────────────────────────────────────
-
     @GetMapping("/register")
-    public String registerForm() {
-        return "user/register";
-    }
+    public String registerForm() { return "user/register"; }
 
     @PostMapping("/register")
     public String register(@RequestParam String username,
@@ -71,22 +66,62 @@ public class UserController {
         }
     }
 
-    // ── Профиль ───────────────────────────────────────────────────────────────
-
     @GetMapping("/{id}")
     public String profile(@PathVariable Long id, Model model) {
-        model.addAttribute("profileUser", userService.findById(id).orElseThrow());
+        User user = userService.findById(id).orElseThrow();
+        model.addAttribute("profileUser", user);
+        model.addAttribute("userTopics",  topicService.findByUserId(id));
+        model.addAttribute("postCount",   postService.countByUserId(id));
         return "user/profile";
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    @GetMapping("/cabinet")
+    public String cabinetForm(HttpSession session, Model model) {
+        Long userId = (Long) session.getAttribute("userId");
+        model.addAttribute("profileUser", userService.findById(userId).orElseThrow());
+        return "user/cabinet";
+    }
+
+    @PostMapping("/cabinet")
+    public String cabinetSave(@RequestParam(defaultValue = "") String about,
+                              @RequestParam(defaultValue = "") String avatarPath,
+                              HttpSession session, RedirectAttributes ra) {
+        Long userId = (Long) session.getAttribute("userId");
+        userService.updateProfile(userId, about, avatarPath);
+        ra.addFlashAttribute("success", "Профиль обновлён.");
+        return "redirect:/user/cabinet";
+    }
+
+    @PostMapping("/cabinet/password")
+    public String changePassword(@RequestParam String oldPassword,
+                                 @RequestParam String newPassword,
+                                 @RequestParam String confirmNew,
+                                 HttpSession session, RedirectAttributes ra) {
+        Long userId = (Long) session.getAttribute("userId");
+        String error = userService.changePassword(userId, oldPassword, newPassword, confirmNew);
+        if (error != null) {
+            ra.addFlashAttribute("pwError", translateError(error));
+        } else {
+            ra.addFlashAttribute("pwSuccess", "Пароль изменён.");
+        }
+        return "redirect:/user/cabinet";
+    }
+
+    @GetMapping("/unread")
+    public String unread(HttpSession session, Model model) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) return "redirect:/user/login";
+        model.addAttribute("topics", topicService.findUnread(userId));
+        return "user/unread";
+    }
 
     private String translateError(String code) {
         return switch (code) {
             case "username_exists"    -> "Имя пользователя уже занято.";
             case "email_exists"       -> "Этот e-mail уже зарегистрирован.";
             case "passwords_mismatch" -> "Пароли не совпадают.";
-            default                   -> "Ошибка регистрации.";
+            case "wrong_password"     -> "Неверный текущий пароль.";
+            default                   -> "Ошибка.";
         };
     }
 }

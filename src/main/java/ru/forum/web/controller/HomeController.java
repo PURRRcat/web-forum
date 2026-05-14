@@ -9,12 +9,11 @@ import ru.forum.service.CategoryService;
 @Controller
 public class HomeController {
 
-    @Autowired
-    private CategoryService categoryService;
+    @Autowired private CategoryService categoryService;
 
     @GetMapping("/")
     public String home(Model model) {
-        model.addAttribute("categories", categoryService.findAll());
+        model.addAttribute("stats", categoryService.findAllWithStats());
         return "home";
     }
 }

@@ -9,10 +9,9 @@
         <property name="hibernate.connection.username">SA</property>
         <property name="hibernate.connection.password"></property>
         <property name="hibernate.dialect">org.hibernate.dialect.HSQLDialect</property>
-
         <property name="hibernate.hbm2ddl.auto">create-drop</property>
-        <property name="hibernate.show_sql">true</property>
-        <property name="hibernate.format_sql">true</property>
+        <property name="hibernate.bytecode.use_reflection_optimizer">false</property>
+        <property name="hibernate.show_sql">false</property>
 
         <mapping class="ru.forum.model.User"/>
         <mapping class="ru.forum.model.Category"/>

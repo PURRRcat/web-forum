@@ -12,8 +12,6 @@ public class HibernateUtil {
             Configuration configuration = new Configuration();
             configuration.configure("hibernate.cfg.xml");
 
-            // Позволяет переопределить URL через системное свойство
-            // (используется задачей appRun: jdbc:hsqldb:mem:forumdb)
             String urlOverride = System.getProperty("hibernate.connection.url");
             if (urlOverride != null) {
                 configuration.setProperty("hibernate.connection.url", urlOverride);

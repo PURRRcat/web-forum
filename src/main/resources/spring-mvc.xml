@@ -29,6 +29,8 @@
         <mvc:interceptor>
             <mvc:mapping path="/topic/new/**"/>
             <mvc:mapping path="/post/**"/>
+            <mvc:mapping path="/user/cabinet"/>
+            <mvc:mapping path="/user/cabinet/**"/>
             <bean class="ru.forum.web.interceptor.AuthInterceptor"/>
         </mvc:interceptor>
     </mvc:interceptors>

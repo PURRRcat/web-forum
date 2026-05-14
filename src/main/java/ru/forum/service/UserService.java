@@ -22,20 +22,32 @@ public class UserService {
     }
 
     public User register(String username, String email, String password, String confirmPassword) {
-        if (!password.equals(confirmPassword)) {
-            throw new IllegalArgumentException("passwords_mismatch");
-        }
-        if (userDao.findByUsername(username).isPresent()) {
-            throw new IllegalArgumentException("username_exists");
-        }
-        if (userDao.findByEmail(email).isPresent()) {
-            throw new IllegalArgumentException("email_exists");
-        }
+        if (!password.equals(confirmPassword))        throw new IllegalArgumentException("passwords_mismatch");
+        if (userDao.findByUsername(username).isPresent()) throw new IllegalArgumentException("username_exists");
+        if (userDao.findByEmail(email).isPresent())   throw new IllegalArgumentException("email_exists");
         User user = new User();
         user.setUsername(username);
         user.setEmail(email);
         user.setPasswordHash(hashPassword(password));
         return userDao.save(user);
+    }
+
+    public void updateProfile(Long id, String about, String avatarPath) {
+        User user = userDao.findById(id);
+        if (user == null) return;
+        user.setAbout(about);
+        user.setAvatarPath(avatarPath);
+        userDao.update(user);
+    }
+
+    public String changePassword(Long id, String oldPassword, String newPassword, String confirmNew) {
+        User user = userDao.findById(id);
+        if (user == null) return "user_not_found";
+        if (!user.getPasswordHash().equals(hashPassword(oldPassword))) return "wrong_password";
+        if (!newPassword.equals(confirmNew)) return "passwords_mismatch";
+        user.setPasswordHash(hashPassword(newPassword));
+        userDao.update(user);
+        return null;
     }
 
     public List<User> findAll() {
@@ -48,9 +60,7 @@ public class UserService {
 
     public void delete(Long id) {
         User u = userDao.findById(id);
-        if (u != null) {
-            userDao.delete(u);
-        }
+        if (u != null) userDao.delete(u);
     }
 
     public static String hashPassword(String password) {

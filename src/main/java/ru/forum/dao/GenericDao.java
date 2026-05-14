@@ -51,7 +51,6 @@ public class GenericDao<T, ID extends Serializable> {
             try {
                 tx.rollback();
             } catch (RuntimeException rollbackEx) {
-                // Ignore rollback exceptions to preserve the original exception path in runInTransaction.
             }
         }
     }

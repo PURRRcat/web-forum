@@ -1,5 +1,6 @@
 package ru.forum.web.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -27,8 +28,9 @@ public class CategoryController {
     }
 
     @GetMapping("/new")
-    public String newForm(HttpSession session, Model model) {
-        if (!"admin".equals(session.getAttribute("role"))) {
+    public String newForm(HttpSession session, HttpServletResponse response) {
+        if (!canManage(session)) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return "error/403";
         }
         return "category/new";
@@ -37,9 +39,10 @@ public class CategoryController {
     @PostMapping("/new")
     public String create(@RequestParam String title,
                          @RequestParam(defaultValue = "") String description,
-                         HttpSession session,
+                         HttpSession session, HttpServletResponse response,
                          RedirectAttributes ra) {
-        if (!"admin".equals(session.getAttribute("role"))) {
+        if (!canManage(session)) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return "error/403";
         }
         Long userId = (Long) session.getAttribute("userId");
@@ -47,5 +50,10 @@ public class CategoryController {
         categoryService.create(title, description, moderator);
         ra.addFlashAttribute("success", "Раздел «" + title + "» создан.");
         return "redirect:/";
+    }
+
+    private boolean canManage(HttpSession session) {
+        String role = (String) session.getAttribute("role");
+        return "admin".equals(role) || "moderator".equals(role);
     }
 }

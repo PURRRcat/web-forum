@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="my" tagdir="/WEB-INF/tags" %>
 <%@ include file="/WEB-INF/views/layout/header.jspf" %>
 
 <nav aria-label="breadcrumb" class="mb-3">
@@ -30,7 +30,7 @@
                                class="text-decoration-none">${post.user.username}</a>
                         </strong>
                         <small class="text-muted">
-                            <fmt:formatDate value="${post.createdAt}" pattern="dd.MM.yyyy HH:mm"/>
+                            <my:dt value="${post.createdAt}" pattern="dd.MM.yyyy HH:mm"/>
                         </small>
                     </div>
                     <p class="card-text mb-2" style="white-space:pre-wrap">${post.content}</p>

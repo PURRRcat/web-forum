@@ -24,27 +24,29 @@ public class TopicController {
 
     @GetMapping("/{id}")
     public String view(@PathVariable Long id, Model model) {
-        Topic topic = topicService.findById(id).orElseThrow();
-        model.addAttribute("topic", topic);
+        model.addAttribute("topic", topicService.findById(id).orElseThrow());
         model.addAttribute("posts", postService.findByTopicId(id));
         return "topic";
     }
 
     @GetMapping("/new/{categoryId}")
     public String newForm(@PathVariable Long categoryId, Model model) {
-        Category category = categoryService.findById(categoryId).orElseThrow();
-        model.addAttribute("category", category);
+        model.addAttribute("category", categoryService.findById(categoryId).orElseThrow());
         return "topic/new";
     }
 
     @PostMapping("/new/{categoryId}")
     public String create(@PathVariable Long categoryId,
                          @RequestParam String title,
+                         @RequestParam(defaultValue = "") String content,
                          HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
-        User author = userService.findById(userId).orElseThrow();
-        Category category = categoryService.findById(categoryId).orElseThrow();
-        Topic topic = topicService.create(title, category, author);
+        User author  = userService.findById(userId).orElseThrow();
+        Category cat = categoryService.findById(categoryId).orElseThrow();
+        Topic topic  = topicService.create(title, cat, author);
+        if (!content.isBlank()) {
+            postService.create(content, topic, author);
+        }
         return "redirect:/topic/" + topic.getId();
     }
 }

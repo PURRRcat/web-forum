@@ -24,12 +24,12 @@ public class ForumDaoIntegrationTest {
     public void cleanUp() {
         try (org.hibernate.Session session = HibernateUtil.getSessionFactory().openSession()) {
             var tx = session.beginTransaction();
-            session.createNativeQuery("DELETE FROM post_views").executeUpdate();
-            session.createNativeQuery("DELETE FROM attachment").executeUpdate();
-            session.createNativeQuery("DELETE FROM posts").executeUpdate();
-            session.createNativeQuery("DELETE FROM topics").executeUpdate();
-            session.createNativeQuery("DELETE FROM categories").executeUpdate();
-            session.createNativeQuery("DELETE FROM users").executeUpdate();
+            session.createNativeMutationQuery("DELETE FROM post_views").executeUpdate();
+            session.createNativeMutationQuery("DELETE FROM attachment").executeUpdate();
+            session.createNativeMutationQuery("DELETE FROM posts").executeUpdate();
+            session.createNativeMutationQuery("DELETE FROM topics").executeUpdate();
+            session.createNativeMutationQuery("DELETE FROM categories").executeUpdate();
+            session.createNativeMutationQuery("DELETE FROM users").executeUpdate();
             tx.commit();
         }
     }

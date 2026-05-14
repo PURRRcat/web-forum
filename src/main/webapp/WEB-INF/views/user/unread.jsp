@@ -3,27 +3,11 @@
 <%@ taglib prefix="my" tagdir="/WEB-INF/tags" %>
 <%@ include file="/WEB-INF/views/layout/header.jspf" %>
 
-<nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/">Форум</a></li>
-        <li class="breadcrumb-item active">${category.title}</li>
-    </ol>
-</nav>
-
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-        <h1 class="mb-1">${category.title}</h1>
-        <p class="text-muted mb-0">${category.description}</p>
-    </div>
-    <c:if test="${not empty sessionScope.userId}">
-        <a href="${pageContext.request.contextPath}/topic/new/${category.id}"
-           class="btn btn-primary">+ Новая тема</a>
-    </c:if>
-</div>
+<h1 class="mb-4">Непрочитанные темы</h1>
 
 <c:choose>
     <c:when test="${empty topics}">
-        <div class="alert alert-info">В этом разделе пока нет тем.</div>
+        <div class="alert alert-success">Все темы прочитаны!</div>
     </c:when>
     <c:otherwise>
         <div class="list-group">
@@ -34,7 +18,7 @@
                         <div>
                             <h6 class="mb-1">${t.title}</h6>
                             <small class="text-muted">
-                                Автор: <strong>${t.user.username}</strong>
+                                ${t.category.title} &nbsp;·&nbsp; ${t.user.username}
                             </small>
                         </div>
                         <small class="text-muted text-nowrap">

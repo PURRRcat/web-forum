@@ -8,7 +8,6 @@ import ru.forum.model.User;
 import ru.forum.util.HibernateUtil;
 
 import org.hibernate.Session;
-import org.hibernate.query.Query;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,25 +16,57 @@ public class TopicService {
 
     private final TopicDao topicDao = new TopicDao();
 
-    /** Загружает темы вместе с автором (JOIN FETCH) для отображения в JSP. */
     public List<Topic> findByCategoryId(Long categoryId) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Query<Topic> q = session.createQuery(
+            return session.createQuery(
                     "SELECT t FROM Topic t JOIN FETCH t.user WHERE t.category.id = :id ORDER BY t.createdAt DESC",
-                    Topic.class);
-            q.setParameter("id", categoryId);
-            return q.list();
+                    Topic.class)
+                    .setParameter("id", categoryId)
+                    .list();
         }
     }
 
-    /** Загружает тему вместе с автором и категорией. */
     public Optional<Topic> findById(Long id) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Query<Topic> q = session.createQuery(
+            return session.createQuery(
                     "SELECT t FROM Topic t JOIN FETCH t.user JOIN FETCH t.category WHERE t.id = :id",
-                    Topic.class);
-            q.setParameter("id", id);
-            return q.uniqueResultOptional();
+                    Topic.class)
+                    .setParameter("id", id)
+                    .uniqueResultOptional();
+        }
+    }
+
+    public List<Topic> findByUserId(Long userId) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery(
+                    "SELECT t FROM Topic t JOIN FETCH t.category WHERE t.user.id = :id ORDER BY t.createdAt DESC",
+                    Topic.class)
+                    .setParameter("id", userId)
+                    .list();
+        }
+    }
+
+    public List<Topic> search(String keyword) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery(
+                    "SELECT DISTINCT t FROM Topic t JOIN FETCH t.user JOIN FETCH t.category " +
+                    "WHERE LOWER(t.title) LIKE :kw ORDER BY t.createdAt DESC",
+                    Topic.class)
+                    .setParameter("kw", "%" + keyword.toLowerCase() + "%")
+                    .list();
+        }
+    }
+
+    public List<Topic> findUnread(Long userId) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery(
+                    "SELECT DISTINCT t FROM Topic t JOIN FETCH t.user JOIN FETCH t.category " +
+                    "JOIN t.posts p WHERE p.id NOT IN " +
+                    "  (SELECT pv.post.id FROM PostView pv WHERE pv.user.id = :uid) " +
+                    "ORDER BY t.createdAt DESC",
+                    Topic.class)
+                    .setParameter("uid", userId)
+                    .list();
         }
     }
 
@@ -49,8 +80,6 @@ public class TopicService {
 
     public void delete(Long id) {
         Topic t = topicDao.findById(id);
-        if (t != null) {
-            topicDao.delete(t);
-        }
+        if (t != null) topicDao.delete(t);
     }
 }

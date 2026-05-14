@@ -13,29 +13,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import ru.forum.dao.*;
 import ru.forum.model.*;
-import ru.forum.service.UserService;
 import ru.forum.util.HibernateUtil;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/**
- * Системные тесты Web-интерфейса форума.
- *
- * Используется Spring MockMvc — стандартный инструмент тестирования
- * Spring MVC, аналогичный HTTPUnit: отправляет HTTP-запросы напрямую
- * DispatcherServlet'у без запуска реального сервера.
- *
- * Покрытые варианты использования и результаты:
- Главная страница
- Регистрация: успех / занятое имя / занятый e-mail / несовпадение паролей
- Вход: успех / неверный пароль / пользователь не найден
- Просмотр раздела
- Создание темы: успех / без авторизации
- Просмотр темы
- Добавление сообщения: успех / без авторизации
- Панель администратора: успех / доступ запрещён
- */
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextHierarchy({
@@ -49,15 +31,12 @@ class SystemTest {
 
     private MockMvc mockMvc;
 
-    // ── Инициализация ────────────────────────────────────────────────────────
-
     @BeforeEach
     void setup() {
         mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
         clearDatabase();
     }
 
-    /** Очищает все таблицы перед каждым тестом (в обратном порядке FK). */
     private void clearDatabase() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             Transaction tx = session.beginTransaction();
@@ -72,12 +51,6 @@ class SystemTest {
         }
     }
 
-    // ── Вспомогательные фабричные методы ────────────────────────────────────
-
-    /**
-     * SHA-256("password") — хэш тестового пароля «password».
-     * Используется во всех тестах для создания пользователей.
-     */
     private static final String PASSWORD_HASH =
             "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8";
 
@@ -114,10 +87,6 @@ class SystemTest {
         return session;
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // Главная страница
-    // ═══════════════════════════════════════════════════════════════════════
-
     @Test
     @DisplayName("Главная страница отображает список разделов")
     void testHomePageShowsCategories() throws Exception {
@@ -127,12 +96,8 @@ class SystemTest {
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("home"))
-                .andExpect(model().attributeExists("categories"));
+                .andExpect(model().attributeExists("stats"));
     }
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // Регистрация
-    // ═══════════════════════════════════════════════════════════════════════
 
     @Test
     @DisplayName("Успешная регистрация нового пользователя")
@@ -189,10 +154,6 @@ class SystemTest {
                 .andExpect(redirectedUrl("/user/register"));
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // Вход в систему
-    // ═══════════════════════════════════════════════════════════════════════
-
     @Test
     @DisplayName("Успешный вход с корректными учётными данными")
     void testLoginSuccess() throws Exception {
@@ -227,10 +188,6 @@ class SystemTest {
                 .andExpect(redirectedUrl("/user/login"));
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // Просмотр раздела
-    // ═══════════════════════════════════════════════════════════════════════
-
     @Test
     @DisplayName("Просмотр раздела со списком тем")
     void testViewCategory() throws Exception {
@@ -243,10 +200,6 @@ class SystemTest {
                 .andExpect(view().name("category"))
                 .andExpect(model().attributeExists("category", "topics"));
     }
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // Создание темы
-    // ═══════════════════════════════════════════════════════════════════════
 
     @Test
     @DisplayName("Авторизованный пользователь создаёт тему")
@@ -274,10 +227,6 @@ class SystemTest {
                 .andExpect(redirectedUrl("/user/login"));
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // Просмотр темы
-    // ═══════════════════════════════════════════════════════════════════════
-
     @Test
     @DisplayName("Просмотр темы со списком сообщений")
     void testViewTopic() throws Exception {
@@ -290,10 +239,6 @@ class SystemTest {
                 .andExpect(view().name("topic"))
                 .andExpect(model().attributeExists("topic", "posts"));
     }
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // Добавление сообщения
-    // ═══════════════════════════════════════════════════════════════════════
 
     @Test
     @DisplayName("Авторизованный пользователь добавляет сообщение")
@@ -324,10 +269,6 @@ class SystemTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/user/login"));
     }
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // Панель администратора
-    // ═══════════════════════════════════════════════════════════════════════
 
     @Test
     @DisplayName("Администратор видит список всех пользователей")

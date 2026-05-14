@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="my" tagdir="/WEB-INF/tags" %>
 <%@ include file="/WEB-INF/views/layout/header.jspf" %>
 
 <h1 class="mb-4">&#128100; Управление пользователями</h1>
@@ -30,7 +30,7 @@
                         ${u.role}
                     </span>
                 </td>
-                <td><fmt:formatDate value="${u.registeredAt}" pattern="dd.MM.yyyy"/></td>
+                <td><my:dt value="${u.registeredAt}" pattern="dd.MM.yyyy"/></td>
                 <td>
                     <c:if test="${u.id != sessionScope.userId}">
                         <form method="post"

@@ -9,7 +9,6 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-// Spring 6 требует флаг -parameters для разрешения имён параметров метода
 tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << '-parameters'
 }
@@ -25,37 +24,32 @@ ext {
 
 configurations {
     sqltool
-    embed  // Tomcat Embed для локального запуска; в WAR не попадает
+    embed
+    compileOnly.extendsFrom(embed)
 }
 
 dependencies {
     sqltool 'org.hsqldb:hsqldb:2.7.2'
     sqltool 'org.hsqldb:sqltool:2.7.2'
 
-    // Hibernate ORM
     implementation 'org.hibernate.orm:hibernate-core:6.2.11.Final'
     implementation 'org.hibernate.orm:hibernate-community-dialects:6.2.11.Final'
     implementation 'org.hsqldb:hsqldb:2.7.2'
 
-    // Spring MVC + ORM интеграция
     implementation "org.springframework:spring-webmvc:${springVersion}"
     implementation "org.springframework:spring-orm:${springVersion}"
 
-    // Jakarta Servlet API (предоставляется контейнером, в WAR не включается)
     compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
     compileOnly 'jakarta.servlet.jsp:jakarta.servlet.jsp-api:3.1.1'
 
-    // JSTL 3.0 (включается в WAR; API-JAR нужен явно — glassfish объявляет его как provided)
     implementation 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:3.0.0'
     implementation 'org.glassfish.web:jakarta.servlet.jsp.jstl:3.0.1'
 
-    // Tomcat Embed для задачи appRun (не включается в WAR)
     embed 'org.apache.tomcat.embed:tomcat-embed-core:10.1.26'
     embed 'org.apache.tomcat.embed:tomcat-embed-jasper:10.1.26'
     embed 'org.apache.tomcat.embed:tomcat-embed-el:10.1.26'
     embed 'jakarta.servlet:jakarta.servlet-api:6.0.0'
 
-    // Тестирование
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.0'
     testImplementation 'org.mockito:mockito-core:5.6.0'
@@ -82,10 +76,8 @@ def sqlToolMain = 'org.hsqldb.cmdline.SqlTool'
 tasks.register('createDb', JavaExec) {
     group = 'database'
     description = 'Создание структуры БД'
-
     classpath = configurations.sqltool
     mainClass = sqlToolMain
-
     args = [
         "--inlineRc=url=jdbc:hsqldb:file:${dbFile},user=SA,password=",
         "create.sql"
@@ -95,10 +87,8 @@ tasks.register('createDb', JavaExec) {
 tasks.register('initDb', JavaExec) {
     group = 'database'
     description = 'Заполнение тестовыми данными'
-
     classpath = configurations.sqltool
     mainClass = sqlToolMain
-
     args = [
         "--inlineRc=url=jdbc:hsqldb:file:${dbFile},user=SA,password=",
         "init.sql"
@@ -108,10 +98,8 @@ tasks.register('initDb', JavaExec) {
 tasks.register('showDb', JavaExec) {
     group = 'database'
     description = 'Вывод содержимого БД'
-
     classpath = configurations.sqltool
     mainClass = sqlToolMain
-
     args = [
         "--inlineRc=url=jdbc:hsqldb:file:${dbFile},user=SA,password=",
         "--sql",
@@ -122,41 +110,29 @@ tasks.register('showDb', JavaExec) {
 tasks.register('cleanDb', Delete) {
     group = 'database'
     description = 'Удаление файлов БД'
-
     delete fileTree(dir: '.', includes: ['forumdb.*'])
 }
 
-// Запуск приложения на встроенном Tomcat
 tasks.register('appRun', JavaExec) {
     group = 'application'
     description = 'Запуск форума на встроенном Tomcat (http://localhost:8080/forum)'
-    // cleanDb удаляет stale-файлы БД, чтобы Hibernate стартовал с чистого листа
     dependsOn war, cleanDb
-    doFirst { delete "${System.getProperty('java.io.tmpdir')}/tomcat-forum" }
     classpath = configurations.embed + sourceSets.main.output.classesDirs
     mainClass = 'ru.forum.Main'
     systemProperty 'war.path', war.archiveFile.get().asFile.absolutePath
-    // In-memory HSQLDB: нет файловых блокировок, мгновенный старт
     systemProperty 'hibernate.connection.url', 'jdbc:hsqldb:mem:forumdb'
     standardInput = System.in
 }
 
-// Полная сборка и подготовка WAR к развёртыванию
 tasks.register('deploy', Copy) {
     group = 'application'
     description = 'Сборка WAR и копирование в build/deploy/'
     dependsOn war
     from war.archiveFile
     into layout.buildDirectory.dir('deploy')
-    doLast {
-        println "WAR готов: ${layout.buildDirectory.get()}/deploy/${war.archiveFileName.get()}"
-        println "Разместите файл в директории webapps/ вашего Tomcat 10+ и перезапустите сервер."
-    }
 }
 
 sourceSets {
-    // Делаем embed-классы (Tomcat) доступными для компиляции Main.java,
-    // не включая их в WAR (embed не входит в runtimeClasspath основного WAR).
     main {
         compileClasspath += configurations.embed
     }

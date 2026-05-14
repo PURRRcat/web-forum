@@ -6,53 +6,71 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Форум</title>
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <style>
         body { background-color: #f8f9fa; }
-        .navbar-brand { font-weight: 700; }
-        .list-group-item-action:hover { background-color: #e9ecef; }
         .post-card { border-left: 4px solid #0d6efd; margin-bottom: 1rem; }
     </style>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
     <div class="container">
-        <a class="navbar-brand" href="${pageContext.request.contextPath}/">&#128172; Форум</a>
-        <div class="d-flex gap-2">
-            <c:choose>
-                <c:when test="${not empty sessionScope.username}">
-                    <a href="${pageContext.request.contextPath}/user/${sessionScope.userId}"
-                       class="btn btn-outline-light btn-sm">${sessionScope.username}</a>
-                    <c:if test="${sessionScope.role == 'admin'}">
-                        <a href="${pageContext.request.contextPath}/admin/users"
-                           class="btn btn-warning btn-sm">Пользователи</a>
-                        <a href="${pageContext.request.contextPath}/category/new"
-                           class="btn btn-success btn-sm">+ Раздел</a>
-                    </c:if>
-                    <a href="${pageContext.request.contextPath}/user/logout"
-                       class="btn btn-outline-danger btn-sm">Выйти</a>
-                </c:when>
-                <c:otherwise>
-                    <a href="${pageContext.request.contextPath}/user/login"
-                       class="btn btn-outline-light btn-sm">Войти</a>
-                    <a href="${pageContext.request.contextPath}/user/register"
-                       class="btn btn-primary btn-sm">Регистрация</a>
-                </c:otherwise>
-            </c:choose>
+        <a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/">&#128172; Форум</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="${pageContext.request.contextPath}/">Главная</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="${pageContext.request.contextPath}/search">Поиск</a>
+                </li>
+                <c:if test="${not empty sessionScope.userId}">
+                    <li class="nav-item">
+                        <a class="nav-link" href="${pageContext.request.contextPath}/user/unread">Непрочитанные</a>
+                    </li>
+                </c:if>
+                <li class="nav-item">
+                    <a class="nav-link" href="${pageContext.request.contextPath}/rules">Правила</a>
+                </li>
+            </ul>
+            <div class="d-flex gap-2 align-items-center">
+                <c:choose>
+                    <c:when test="${not empty sessionScope.username}">
+                        <c:if test="${sessionScope.role == 'admin' or sessionScope.role == 'moderator'}">
+                            <a href="${pageContext.request.contextPath}/category/new"
+                               class="btn btn-success btn-sm">+ Раздел</a>
+                        </c:if>
+                        <c:if test="${sessionScope.role == 'admin'}">
+                            <a href="${pageContext.request.contextPath}/admin/users"
+                               class="btn btn-warning btn-sm">Пользователи</a>
+                        </c:if>
+                        <a href="${pageContext.request.contextPath}/user/cabinet"
+                           class="btn btn-outline-light btn-sm">&#9881; ${sessionScope.username}</a>
+                        <a href="${pageContext.request.contextPath}/user/logout"
+                           class="btn btn-outline-danger btn-sm">Выйти</a>
+                    </c:when>
+                    <c:otherwise>
+                        <a href="${pageContext.request.contextPath}/user/login"
+                           class="btn btn-outline-light btn-sm">Войти</a>
+                        <a href="${pageContext.request.contextPath}/user/register"
+                           class="btn btn-primary btn-sm">Регистрация</a>
+                    </c:otherwise>
+                </c:choose>
+            </div>
         </div>
     </div>
 </nav>
 <div class="container">
-    <c:if test="${not empty flashAttributes.success or not empty success}">
+    <c:if test="${not empty success}">
         <div class="alert alert-success alert-dismissible fade show">
-            ${not empty success ? success : flashAttributes.success}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            ${success}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     </c:if>
-    <c:if test="${not empty flashAttributes.error or not empty error}">
+    <c:if test="${not empty error}">
         <div class="alert alert-danger alert-dismissible fade show">
-            ${not empty error ? error : flashAttributes.error}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            ${error}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     </c:if>

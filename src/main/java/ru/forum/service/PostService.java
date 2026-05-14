@@ -8,7 +8,6 @@ import ru.forum.model.User;
 import ru.forum.util.HibernateUtil;
 
 import org.hibernate.Session;
-import org.hibernate.query.Query;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -18,25 +17,44 @@ public class PostService {
 
     private final PostDao postDao = new PostDao();
 
-    /** Загружает сообщения вместе с автором (JOIN FETCH) для отображения в JSP. */
     public List<Post> findByTopicId(Long topicId) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Query<Post> q = session.createQuery(
+            return session.createQuery(
                     "SELECT p FROM Post p JOIN FETCH p.user WHERE p.topic.id = :id ORDER BY p.createdAt",
-                    Post.class);
-            q.setParameter("id", topicId);
-            return q.list();
+                    Post.class)
+                    .setParameter("id", topicId)
+                    .list();
         }
     }
 
-    /** Загружает сообщение вместе с автором и темой. */
     public Optional<Post> findById(Long id) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Query<Post> q = session.createQuery(
+            return session.createQuery(
                     "SELECT p FROM Post p JOIN FETCH p.user JOIN FETCH p.topic WHERE p.id = :id",
-                    Post.class);
-            q.setParameter("id", id);
-            return q.uniqueResultOptional();
+                    Post.class)
+                    .setParameter("id", id)
+                    .uniqueResultOptional();
+        }
+    }
+
+    public List<Post> search(String keyword) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery(
+                    "SELECT p FROM Post p JOIN FETCH p.user JOIN FETCH p.topic " +
+                    "WHERE LOWER(p.content) LIKE :kw ORDER BY p.createdAt DESC",
+                    Post.class)
+                    .setParameter("kw", "%" + keyword.toLowerCase() + "%")
+                    .list();
+        }
+    }
+
+    public long countByUserId(Long userId) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Long count = session.createQuery(
+                    "SELECT COUNT(p) FROM Post p WHERE p.user.id = :id", Long.class)
+                    .setParameter("id", userId)
+                    .uniqueResult();
+            return count != null ? count : 0;
         }
     }
 
@@ -50,9 +68,7 @@ public class PostService {
 
     public Post update(Long id, String content) {
         Post post = postDao.findById(id);
-        if (post == null) {
-            throw new IllegalArgumentException("Post not found: " + id);
-        }
+        if (post == null) throw new IllegalArgumentException("Post not found: " + id);
         post.setContent(content);
         post.setUpdatedAt(LocalDateTime.now());
         return postDao.update(post);
@@ -60,8 +76,6 @@ public class PostService {
 
     public void delete(Long id) {
         Post p = postDao.findById(id);
-        if (p != null) {
-            postDao.delete(p);
-        }
+        if (p != null) postDao.delete(p);
     }
 }

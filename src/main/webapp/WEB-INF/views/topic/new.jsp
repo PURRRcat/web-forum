@@ -13,17 +13,21 @@
 </nav>
 
 <div class="row justify-content-center">
-    <div class="col-md-8">
+    <div class="col-md-9">
         <div class="card shadow-sm">
             <div class="card-header"><h4 class="mb-0">Создать новую тему</h4></div>
             <div class="card-body">
-                <form method="post"
-                      action="${pageContext.request.contextPath}/topic/new/${category.id}">
+                <form method="post" action="${pageContext.request.contextPath}/topic/new/${category.id}">
                     <div class="mb-3">
-                        <label class="form-label">Заголовок темы</label>
+                        <label class="form-label fw-semibold">Заголовок темы</label>
                         <input type="text" name="title" class="form-control"
                                required maxlength="255" autofocus
-                               placeholder="Введите заголовок темы…">
+                               placeholder="Введите заголовок…">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Первое сообщение</label>
+                        <textarea name="content" class="form-control" rows="7"
+                                  placeholder="Текст первого сообщения…"></textarea>
                     </div>
                     <div class="d-flex gap-2">
                         <button class="btn btn-primary">Создать тему</button>
