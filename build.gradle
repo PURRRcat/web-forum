@@ -58,9 +58,7 @@ dependencies {
     testImplementation 'jakarta.servlet.jsp:jakarta.servlet.jsp-api:3.1.1'
     testImplementation 'org.hamcrest:hamcrest:2.2'
 
-    // HtmlUnit для системных тестов без реального браузера
-    testImplementation 'org.htmlunit:htmlunit:4.21.0'
-    // Selenium WebDriver оставлен для совместимости, если появятся browser-based тесты
+    // Selenium WebDriver для системных UI-тестов в реальном Chromium
     testImplementation 'org.seleniumhq.selenium:selenium-java:4.21.0'
     // Tomcat Embed для запуска сервера внутри SeleniumTest
     testImplementation 'org.apache.tomcat.embed:tomcat-embed-core:10.1.26'
@@ -75,7 +73,7 @@ tasks.test {
 
 tasks.register('systemTest', Test) {
     group = 'verification'
-    description = 'Системные тесты (HtmlUnit): запускает WAR на порту 8081 и проверяет UI'
+    description = 'Системные UI-тесты (Selenium + Chromium): запускает WAR на порту 8081 и проверяет UI'
     dependsOn war
     useJUnitPlatform()
     testClassesDirs = sourceSets.test.output.classesDirs
