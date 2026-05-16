@@ -57,10 +57,36 @@ dependencies {
     testImplementation 'jakarta.servlet:jakarta.servlet-api:6.0.0'
     testImplementation 'jakarta.servlet.jsp:jakarta.servlet.jsp-api:3.1.1'
     testImplementation 'org.hamcrest:hamcrest:2.2'
+
+    // HtmlUnit для системных тестов без реального браузера
+    testImplementation 'org.htmlunit:htmlunit:4.21.0'
+    // Selenium WebDriver оставлен для совместимости, если появятся browser-based тесты
+    testImplementation 'org.seleniumhq.selenium:selenium-java:4.21.0'
+    // Tomcat Embed для запуска сервера внутри SeleniumTest
+    testImplementation 'org.apache.tomcat.embed:tomcat-embed-core:10.1.26'
+    testImplementation 'org.apache.tomcat.embed:tomcat-embed-jasper:10.1.26'
+    testImplementation 'org.apache.tomcat.embed:tomcat-embed-el:10.1.26'
 }
 
 tasks.test {
     useJUnitPlatform()
+    exclude '**/SeleniumTest*'
+}
+
+tasks.register('systemTest', Test) {
+    group = 'verification'
+    description = 'Системные тесты (HtmlUnit): запускает WAR на порту 8081 и проверяет UI'
+    dependsOn war
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/SeleniumTest*'
+    systemProperty 'war.path', war.archiveFile.get().asFile.absolutePath
+    systemProperty 'hibernate.connection.url', 'jdbc:hsqldb:mem:testforum'
+    testLogging {
+        events 'passed', 'failed', 'skipped'
+        showStandardStreams = false
+    }
 }
 
 tasks.jacocoTestReport {
