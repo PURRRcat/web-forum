@@ -15,11 +15,8 @@ gradle test jacocoTestReport
 # Собрать WAR
 gradle war
 
-# Запустить системные тесты (Selenium, реальный браузер Chromium)
+# Запустить системные тесты
 gradle systemTest
-
-# При необходимости пересоздать и снова наполнить БД
-# gradle cleanDb createDb initDb
 ```
 
 Отчёты:
