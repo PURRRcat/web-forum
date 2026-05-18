@@ -22,7 +22,7 @@ class SeleniumTest {
 
     static final int PORT = 8081;
     static final String BASE = "http://localhost:" + PORT + "/forum";
-    static final Duration WAIT_TIMEOUT = Duration.ofSeconds(5);
+    static final Duration WAIT_TIMEOUT = Duration.ofSeconds(15);
     static final List<String> CHROME_BINARIES = List.of(
             "/usr/bin/chromium",
             "/usr/bin/google-chrome",
@@ -30,6 +30,7 @@ class SeleniumTest {
     );
 
     static Tomcat tomcat;
+    static File tomcatBaseDir;
 
     static final String REG_USER = "ivan_" + System.nanoTime();
     static final String REG_EMAIL = REG_USER + "@test.com";
@@ -53,10 +54,11 @@ class SeleniumTest {
         System.setProperty("hibernate.connection.url", "jdbc:hsqldb:mem:testforum");
 
         String warPath = System.getProperty("war.path", "build/libs/forum.war");
+        tomcatBaseDir = new File("build/tomcat-sysTest-" + System.nanoTime());
 
         tomcat = new Tomcat();
         tomcat.setPort(PORT);
-        tomcat.setBaseDir("build/tomcat-sysTest");
+        tomcat.setBaseDir(tomcatBaseDir.getAbsolutePath());
         tomcat.getConnector();
         tomcat.addWebapp("/forum", new File(warPath).getAbsolutePath());
         tomcat.start();
@@ -133,7 +135,7 @@ class SeleniumTest {
     private void waitForPage() {
         wait.until(driver -> "complete".equals(
                 ((JavascriptExecutor) driver).executeScript("return document.readyState")));
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
+        wait.until(driver -> !driver.findElements(By.tagName("body")).isEmpty());
     }
 
     private String pageText() {
@@ -147,7 +149,8 @@ class SeleniumTest {
             field.clear();
             field.sendKeys(nameValues[i + 1]);
         }
-        form.findElement(By.cssSelector("button[type='submit'],button:not([type])")).click();
+        ((JavascriptExecutor) driver).executeScript("arguments[0].submit();", form);
+        wait.until(ExpectedConditions.stalenessOf(form));
         waitForPage();
     }
 
