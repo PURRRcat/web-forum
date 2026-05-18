@@ -53,7 +53,6 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.0'
     testImplementation 'org.mockito:mockito-core:5.6.0'
-    testImplementation "org.springframework:spring-test:${springVersion}"
     testImplementation 'jakarta.servlet:jakarta.servlet-api:6.0.0'
     testImplementation 'jakarta.servlet.jsp:jakarta.servlet.jsp-api:3.1.1'
     testImplementation 'org.hamcrest:hamcrest:2.2'
@@ -140,11 +139,12 @@ tasks.register('cleanDb', Delete) {
 tasks.register('appRun', JavaExec) {
     group = 'application'
     description = 'Запуск форума на встроенном Tomcat (http://localhost:8080/forum)'
-    dependsOn war, cleanDb
+    dependsOn war
     classpath = configurations.embed + sourceSets.main.output.classesDirs
     mainClass = 'ru.forum.Main'
     systemProperty 'war.path', war.archiveFile.get().asFile.absolutePath
-    systemProperty 'hibernate.connection.url', 'jdbc:hsqldb:mem:forumdb'
+    systemProperty 'hibernate.connection.url', 'jdbc:hsqldb:file:forumdb;shutdown=true'
+    systemProperty 'hibernate.hbm2ddl.auto', 'validate'
     standardInput = System.in
 }
 

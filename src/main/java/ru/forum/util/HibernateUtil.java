@@ -17,6 +17,11 @@ public class HibernateUtil {
                 configuration.setProperty("hibernate.connection.url", urlOverride);
             }
 
+            String ddlOverride = System.getProperty("hibernate.hbm2ddl.auto");
+            if (ddlOverride != null) {
+                configuration.setProperty("hibernate.hbm2ddl.auto", ddlOverride);
+            }
+
             configuration.addAnnotatedClass(ru.forum.model.User.class);
             configuration.addAnnotatedClass(ru.forum.model.Category.class);
             configuration.addAnnotatedClass(ru.forum.model.Topic.class);

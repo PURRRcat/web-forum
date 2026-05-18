@@ -6,6 +6,9 @@
 # Создать и наполнить БД
 gradle cleanDb createDb initDb
 
+# Запустить приложение на тех же данных
+gradle appRun
+
 # Запустить модульные и интеграционные тесты
 gradle test jacocoTestReport
 
@@ -15,14 +18,20 @@ gradle war
 # Запустить системные тесты (Selenium, реальный браузер Chromium)
 gradle systemTest
 
-# Запустить на Tomcat (http://localhost:8080/forum)
-gradle appRun
+# При необходимости пересоздать и снова наполнить БД
+# gradle cleanDb createDb initDb
 ```
 
 Отчёты:
 - `build/reports/tests/test/index.html` — результаты интеграционных тестов
 - `build/reports/tests/systemTest/index.html` — результаты системных тестов
 - `build/reports/jacoco/test/html/index.html` — покрытие кода
+
+Тестовые учётные записи из `init.sql`:
+- `admin` / `admin`
+- `moderator1` / `moderator1`
+- `ivan` / `password`
+- `anna` / `password`
 
 
 ## Описание сценариев системного тестирования
@@ -180,6 +189,19 @@ gradle appRun
 
 ---
 
+<<<<<<< HEAD
+=======
+### Результаты выполнения тестов
+
+```
+SeleniumTest (Selenium WebDriver):  16 тестов, 0 ошибок, 0 пропущено
+ForumDaoIntegrationTest:             8 тестов, 0 ошибок, 0 пропущено
+Итого: 24 теста — все прошли успешно
+```
+
+---
+
+>>>>>>> a667942 (final fixes)
 ## Hibernate
 
 - Конфиг: `src/main/resources/hibernate.cfg.xml`
