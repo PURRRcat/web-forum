@@ -189,19 +189,6 @@ gradle systemTest
 
 ---
 
-<<<<<<< HEAD
-=======
-### Результаты выполнения тестов
-
-```
-SeleniumTest (Selenium WebDriver):  16 тестов, 0 ошибок, 0 пропущено
-ForumDaoIntegrationTest:             8 тестов, 0 ошибок, 0 пропущено
-Итого: 24 теста — все прошли успешно
-```
-
----
-
->>>>>>> a667942 (final fixes)
 ## Hibernate
 
 - Конфиг: `src/main/resources/hibernate.cfg.xml`
